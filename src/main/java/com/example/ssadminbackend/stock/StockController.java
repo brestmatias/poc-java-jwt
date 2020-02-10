@@ -39,7 +39,7 @@ public class StockController {
     public StockResponseDTO update(@PathVariable String stockId,
                                    @RequestParam(value = "quantity", required = false) final Integer quantity) {
 
-
+        return StockResponseDTO.valueOf(service.getByID(Long.parseLong(stockId)));
     }
 
     @RequestMapping(method = DELETE, value = "/stock/{stockId}", produces = APPLICATION_JSON_VALUE)
