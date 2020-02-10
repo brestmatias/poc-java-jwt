@@ -36,7 +36,7 @@ public class AuthorizationController {
 
         String token = Jwts
                 .builder()
-                .setId("softtekJWT")
+                .setId("tokenJWT")
                 .setSubject(username)
                 .claim("authorities",
                         grantedAuthorities.stream()
