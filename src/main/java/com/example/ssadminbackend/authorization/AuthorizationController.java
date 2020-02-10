@@ -5,11 +5,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
 import static com.example.ssadminbackend.authorization.SecurityConstants.SECRET;
 import static com.example.ssadminbackend.authorization.SecurityConstants.PREFIX;
 
@@ -19,15 +23,35 @@ import io.jsonwebtoken.SignatureAlgorithm;
 @RestController
 public class AuthorizationController {
 
-    @PostMapping("auth")
-    public UserDTO login(@RequestBody final UserDTO request) {
+    private final AuthorizationService service;
 
-        String token = getJWTToken(request.getName());
-        UserDTO userDTO = new UserDTO();
+    @Autowired
+    public AuthorizationController(AuthorizationService authorizationService) {
+        this.service = authorizationService;
+    }
+
+    @PostMapping("auth/create")
+    public UserDTO create() {
+        User user = new User();
+        user.setName("admin");
+        user.setPassword("1234");
+        return UserDTO.valueOf(service.create(user));
+    }
+
+    @PostMapping("auth")
+    public ResponseEntity login(@RequestBody final UserDTO request) {
+
+        User logedUser = service.getByNameAndPassword(request.getName(), request.getPassword());
+
+        if (logedUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        String token = getJWTToken(logedUser.getName());
+        UserDTO userDTO = UserDTO.valueOf(logedUser);
         userDTO.setName(request.getName());
         userDTO.setToken(token);
-        return userDTO;
-
+        return ResponseEntity.ok( userDTO);
     }
 
     private String getJWTToken(String username) {
